@@ -85,12 +85,16 @@ class Management(QCAlgorithm):
             self.dailys_ta.append(self.current_sa)
             #mas_ta.append(calc_ma(dailys_ta))
     
-            if(datetime.datetime.today().weekday() == 6):
+            if(datetime.datetime.today().weekday() == 0):
                 reallocations = reallocate()
                 self.cash = self.cash + (reallocations[0] * -1)
                 self.ta.reallocate(reallocations[1])
                 self.sa.reallocate(reallocations[2])
                 self.ca.reallocate(reallocations[3])
+                
+            else if(datetime.datetime.today().weekday() == 5 or datetime.datetime.today().weekday() == 6):
+                pass
+                
     
             else:
                 reallocations = check_bounds()
