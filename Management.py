@@ -11,21 +11,21 @@ class Management(QCAlgorithm):
     def Initialize(self):
         self.SetStartDate(2021, 6, 5)
         
-        self.ta.start()
-        self.ca.start()
-        self.sa.start()
-        
         self.cash = 100000000.00
         self.mas_ta, self.mas_ca, self.mas_sa = [], [], []
         self.dailys_ta, self.dailys_ca, self.dailys_sa = [], [], []
         self.currents = [self.cash, 0.00, 0.00, 0.00]
         
-        self.self.ALLOCATIONS = [
+        self.ALLOCATIONS = [
             [0.0001, 0.05, 0.50],
             [0.15, 0.35, 0.65],
             [0.05, 0.25, 0.55],
             [0.00, 0.15, 0.30]
         ]
+        
+        self.ta.initialize(self.cash*self.ALLOCATIONS[1][1])
+        self.ca.initialize(self.cash*self.ALLOCATIONS[2][1])
+        self.sa.initialize(self.cash*self.ALLOCATIONS[3][1])
         
         main()
     
