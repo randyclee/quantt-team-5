@@ -32,7 +32,7 @@ class TeamFiveAlgo(QCAlgorithm):
             ]
 
         self.candleSymbols = [
-            'AAPL','BRK.B','MSFT','PFE'
+            'AAPL','MSFT','AMZN','TSLA'
             ]
 
         for symbol in self.symbols:
@@ -89,11 +89,11 @@ class TeamFiveAlgo(QCAlgorithm):
                     short_vol = data.GetProperty("SHORTVOLUME")
                     total_vol = data.GetProperty("TOTALVOLUME")
 
-                    short_interest[symbol] = short_vol / total_vol
+                    short_interest[symbol] = total_vol
 
         sorted_by_short_interest = sorted(short_interest.items(), key = lambda x: x[1], reverse = True)
-        decile = 5
-        long = [x[0] for x in sorted_by_short_interest[-decile:]]
+        decile = 3
+        long = [x[0] for x in sorted_by_short_interest[:decile]]
 
         count = len(long)
         if count == 0:
@@ -110,9 +110,11 @@ class TeamFiveAlgo(QCAlgorithm):
         for symbol in long:
             if self.Securities[symbol].Price != 0:
                 self.SetHoldings(symbol, buyPercent)
+                
+        return long
 
     def Rebalance(self):
-        self.shortInt(self.ALLOCATIONS[1])
+        self.candleSymbols = self.shortInt(self.ALLOCATIONS[1])
 
     def OnData(self, data):
         self.candlestick(self.ALLOCATIONS[0])
