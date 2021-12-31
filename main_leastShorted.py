@@ -91,7 +91,7 @@ class TeamFiveAlgo(QCAlgorithm):
                     short_interest[symbol] = short_vol / total_vol
 
         sorted_by_short_interest = sorted(short_interest.items(), key = lambda x: x[1], reverse = True)
-        decile = 5
+        decile = 3
         long = [x[0] for x in sorted_by_short_interest[-decile:]]
 
         return long
