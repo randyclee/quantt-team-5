@@ -95,22 +95,6 @@ class TeamFiveAlgo(QCAlgorithm):
         sorted_by_short_interest = sorted(short_interest.items(), key = lambda x: x[1], reverse = True)
         decile = 3
         long = [x[0] for x in sorted_by_short_interest[-decile:]]
-
-        count = len(long)
-        if count == 0:
-            buyPercent = 0
-
-        else:
-            buyPercent = percentVal / count
-
-        stocks_invested = [x.Key.Value for x in self.Portfolio if x.Value.Invested]
-        for symbol in stocks_invested:
-            if symbol not in long:
-                self.Liquidate(symbol)
-
-        for symbol in long:
-            if self.Securities[symbol].Price != 0:
-                self.SetHoldings(symbol, buyPercent)
                 
         return long
 
