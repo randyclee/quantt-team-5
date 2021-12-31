@@ -6,8 +6,7 @@ import pandas as pd
 class TeamFiveAlgo(QCAlgorithm):
     def Initialize(self):
         #ADD START DATE HERE
-        self.SetStartDate(2007, 1, 1)
-        self.SetStartDate(2009, 1, 1)
+        self.SetStartDate(2020, 1, 1)
 
         self.SetCash(100000000)
         self.SetWarmUp(15)
@@ -79,7 +78,7 @@ class TeamFiveAlgo(QCAlgorithm):
                 if self.Securities[symbol].Price < L[-2]:
                      self.Liquidate(symbol)
 
-    def shortInt(self, percentVal):
+    def shortInt(self):
         short_interest = {}
 
         for symbol in self.symbols:
@@ -95,22 +94,13 @@ class TeamFiveAlgo(QCAlgorithm):
         decile = 5
         long = [x[0] for x in sorted_by_short_interest[-decile:]]
 
-        count = len(long)
-        if count == 0:
-            buyPercent = 0
-
-        else:
-            buyPercent = percentVal / count
-
-        stocks_invested = [x.Key.Value for x in self.Portfolio if x.Value.Invested]
-                
         return long
 
     def Rebalance(self):
         self.candleSymbols = self.shortInt()
 
     def OnData(self, data):
-        self.candlestick(1)
+        self.candlestick(0.95)
 
     def CustomBarHandler(self, bar):
         self.rollingWindow.Add(bar)
