@@ -5,8 +5,9 @@ import pandas as pd
 
 class TeamFiveAlgo(QCAlgorithm):
     def Initialize(self):
+        #ADD START DATE HERE
         self.SetStartDate(2020, 1, 1)
-        self.SetEndDate(2022, 1, 1)
+        
         self.SetCash(100000000)
         self.SetWarmUp(15)
 
