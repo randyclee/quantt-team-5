@@ -32,7 +32,7 @@ class TeamFiveAlgo(QCAlgorithm):
             ]
 
         self.candleSymbols = [
-            'AAPL','MSFT','AMZN','TSLA'
+            'AAPL','BRK.B','MSFT','PFE'
             ]
 
         for symbol in self.symbols:
