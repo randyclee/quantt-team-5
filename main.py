@@ -15,7 +15,7 @@ class TeamFiveAlgo(QCAlgorithm):
         #self.dailys_ta, self.dailys_ca, self.dailys_sa = [], [], []
         #self.currents = [self.cash, 0.00, 0.00, 0.00]
         
-        self.ALLOCATIONS = [0.80, 0.20]
+        self.ALLOCATIONS = [0.75, 0.25, 0.25]
 
         self.macData = {}
         self.candleData = {}
@@ -30,13 +30,16 @@ class TeamFiveAlgo(QCAlgorithm):
         for symbol in self.symbols:
             data = self.AddEquity(symbol, Resolution.Daily)
             self.AddData(QuandlFINRA_ShortVolume, 'FINRA/FNSQ_' + symbol, Resolution.Daily)
+            self.macData[symbol] = self.MACD(symbol, 12, 26, 9, MovingAverageType.Exponential, Resolution.Daily)
 
+        self.Schedule.On(self.DateRules.WeekStart(self.symbols[0]), self.TimeRules.AfterMarketOpen(self.symbols[0]), self.Rebalance)
+        self.__previous = datetime.min
+
+        self.sym = self.AddEquity('SPY', Resolution.Hour).Symbol
         self.rollingWindow = RollingWindow[TradeBar](15)
+        self.Consolidate(self.sym, Resolution.Hour, self.CustomBarHandler)
 
-    def candlestick(self, percentVal, symbol):
-        
-        self.sym = self.AddEquity(str(symbol), Resolution.Hour).Symbol
-        
+    def candlestick(self, percentVal):
         if not self.rollingWindow.IsReady:
             return
 
@@ -62,6 +65,42 @@ class TeamFiveAlgo(QCAlgorithm):
         else:
             if self.Securities[self.sym].Price < L[-2]:
                  self.Liquidate(self.sym)
+
+    def macD(self, percentVal):
+        if self.IsWarmingUp: return
+
+        # only once per day
+        if self.__previous.date() == self.Time.date(): return
+
+        # define a small tolerance on our checks to avoid bouncing
+        tolerance = 0.0025
+        chooseStock = np.zeros(len(self.symbols))
+        counter = 0
+        # if our macd is greater than our signal, go long
+        for symbol in self.symbols:
+            if self.macData[symbol].IsReady:
+
+                holdings = self.Portfolio[symbol].Quantity
+                signalDeltaPercent = (self.macData[symbol].Current.Value - self.macData[symbol].Signal.Current.Value)/self.macData[symbol].Fast.Current.Value
+
+                if holdings <= 0 and signalDeltaPercent > tolerance:  # 0.01%
+                    chooseStock[counter] = 1
+                # of our macd is less than our signal, then go short
+                elif holdings >= 0 and signalDeltaPercent < -tolerance:
+                    chooseStock[counter] = 2
+
+            counter = counter + 1
+
+        buyPercent = 1/len(self.symbols)
+        counter = 0
+        for symbol in self.symbols:
+            if(chooseStock[counter] == 1):
+                self.SetHoldings(symbol, buyPercent)
+            elif(chooseStock[counter] == 2):
+                self.Liquidate(symbol)
+            counter = counter + 1
+
+        self.__previous = self.Time
 
     def shortInt(self, percentVal):
         short_interest = {}
@@ -94,13 +133,13 @@ class TeamFiveAlgo(QCAlgorithm):
         for symbol in long:
             if self.Securities[symbol].Price != 0:
                 self.SetHoldings(symbol, buyPercent)
-                
-        return long
+    
+    def Rebalance(self):
+        self.shortInt(self.ALLOCATIONS[2])
     
     def OnData(self, data):
-        symbols = self.shortInt(self.ALLOCATIONS[len(ALLOCATIONS) - 1])
-        for i in range(0, len(symbols)):
-            self.candlestick(self.ALLOCATIONS[0]/len(symbols), symbols[i])
+        self.candlestick(self.ALLOCATIONS[0])
+        #self.macD(self.ALLOCATIONS[1])
 
     def CustomBarHandler(self, bar):
         self.rollingWindow.Add(bar)
